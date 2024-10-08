@@ -22,7 +22,7 @@ import jp.co.internous.ecsite.model.form.LoginForm;
 import jp.co.internous.ecsite.model.mapper.MstGoodsMapper;
 import jp.co.internous.ecsite.model.mapper.MstUserMapper;
 import jp.co.internous.ecsite.model.mapper.TblPurchaseMapper;
-// お客様（ユーザー）がサイトにアクセスすると、トップページに商品一覧が初期表示される
+// お客様（ユーザー）がサイトにアクセスすると、トップページに商品一覧が初期表示される//
 @Controller
 @RequestMapping("/ecsite")// localhost:8080/ecsite/ のURLでアクセスできるよう設定
 public class IndexController {
