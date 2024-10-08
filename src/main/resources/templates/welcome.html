@@ -1,0 +1,95 @@
+<!DOCTYPE html><!-- 管理者ページ -->
+<html xmlns:th="www.thymeleaf.org"><!-- xmlnsとは、XML Name Spaceの略です。-->
+<head><!-- Thymeleafを使用する際には、htmlタグの属性として xmlns:th="www.thymeleaf.org"の表記が必要です。-->
+<meta charset="UTF-8">
+<link href="/css/style.css" rel="stylesheet" />
+<title>Insert title here</title>
+
+<script>
+/*
+ * 画面表示時（onLoad）に動作する処理群
+ */
+document.addEventListener("DOMContentLoaded", event => {
+
+// 商品情報の「削除」ボタンをすべて抽出し、deleteBtns に格納する
+  const deleteBtns = document.querySelectorAll(".deleteBtn");
+// 削除ボタンは、商品情報の行すべてのボタンにイベントリスナを登録が必要なので、querySelectorAllメソッドでボタンと配列を取得している。
+
+// deleteBtns をループさせ、すべてのボタンにイベントリスナを追加する
+deleteBtns.forEach(btn =>{
+  // "click" イベントが発火した際、無名関数を呼び出すよう設定する
+  btn.addEventListener("click", event =>{
+    let isOK = confirm("削除してもよろしいですか？");
+    if( !isOK ){ return; }
+    
+    // event.target（削除ボタン）の親要素のさらに親要素から、"td"要素をすべて抽出し、tdList に格納する
+    const tdList = event.target.parentElement.parentElement.querySelectorAll("td");
+    // deleteGoods 関数を呼び出し、商品情報を削除する
+    deleteGoods(tdList);
+   });
+ });
+ 
+});
+
+/*
+ * deleteGoods関数
+ * 「削除」ボタンのclickイベントにより呼び出される
+ */
+ function deleteGoods(tdList){
+   // JavaにPOST送信するオブジェクトを取得・設定する
+   const postObj = { "id": tdList.item(0).innerText };
+  
+   /*
+    * fetch API を使用し、Javaと非同期通信（POST）を行う
+    * SUCCSESS時（then）：削除処理完了のアラートを表示し、画面上の商品情報行を削除する
+    * ERROR時　（catch）：エラー情報を console に出力する
+    */
+   fetch("/ecsite/admin/api/deleteGoods",{// fetch関数の第一引数に設定される文字列が、通信先のURL
+     method: "POST",//                       このURLでマッピングされているJava側メソッドが呼び出される
+     headers: { 'Content-Type': "application/json" },
+     body: JSON.stringify(postObj),// 送信するJavascriptデータをJSON形式文字列に変換している
+   })
+   .then(response => response.text())
+   .then(result => {// fetch関数によってJava側(AdminControllerのdeleteApiメソッド)と通信した結果がthen関数の引数に自動的にセットされる
+     alert(`商品[ ${tdList.item(1).innerText} ] を削除しました。`);// メッセージを囲む「`」はバッククォーテーション Shift+@キー
+     tdList.item(0).parentElement.remove();//　　　　　　　　　　　　 シングルクォーテーションではないので注意
+   })//                              ・Javascriptでは、バッククォーテーションで囲んだ文字列の中に変数を記述する事が出来ます
+   .catch(error =>{//　　　　　　　　　[シングルクォーテーションでの文字結合の例]
+     console.error("Error: ",error);//　'ようこそ！'+ user.fullName +'さん'
+   });//　　　　　　　　　　　　　　　 [バッククォーテーションでの文字結合の例]
+ }//　　　　　　　　　　　　　　　　　 `ようこそ！ ${user.fullName}さん`
+</script>
+
+</head>
+<body>
+
+<header>
+  <h1>EC Site -- 管理者ページ</h1>
+</header>
+<table id="adminTable">
+  <thead>
+    <tr>
+      <th>ID</th><th>商品名</th><th>価格</th><th>削除</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="item: ${goods}">
+      <td th:text="${item.id}" /><!--「${...}」の記述で、Javaから送られた情報をThymeleafでも受け取れます。-->
+      <td th:text="${item.goodsName}" />
+      <td th:text="${item.price}" />
+      <td><button type="submit" class="deleteBtn">削除</button></td>
+    </tr>
+  </tbody>
+</table>
+<form name="goodsForm" id="adminPage" method="post" action="/ecsite/admin/goodsMst">
+  
+  <button type="submit" th:if="${userName !=null}">新規商品追加</button>
+  <!-- th:ifを使う事で、Thymeleafを介してhtmlファイル内で分岐処理を行う事が出来ます。
+       これにより、Javaから送られてきたuserNameがnullであれば「新規追加」ボタンは作成されません。
+       ※「!=」はノットイコールを表し、2文字で1つの比較演算子です。-->
+  <input type="hidden" name="userName" th:value="${userName}" />
+  <input type="hidden" name="password" th:value="${password}" />
+  
+</form>
+</body>
+</html>
